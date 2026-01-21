@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StyleSheet } from 'react-native';
+import { HistoryProvider } from '@/contexts/HistoryContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -20,7 +21,8 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <HistoryProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           {/* Navigation principale */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -34,6 +36,7 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
+      </HistoryProvider>
     </GestureHandlerRootView>
   );
 }

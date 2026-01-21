@@ -70,13 +70,13 @@ export const options = {
         <View style={styles.header}>
           <View style={styles.productInfo}>
             <Text style={styles.productName}>
-              {product.product_name}
+              {product.product_name || 'Produit inconnu'}
             </Text>
             <Text style={styles.productBrand}>
-              {product.brands}
+              {product.brands || ''}
             </Text>
             <Text style={[styles.score, {color: product.score >= 50 ? 'green' : 'red'}]}>
-              {product.score}/100
+              {product.score || 0}/100
             </Text>
           </View>
         </View>

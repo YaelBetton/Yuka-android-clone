@@ -4,6 +4,7 @@ import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-ca
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Button, StyleSheet, Text, View } from 'react-native';
+import { useHistory } from '@/contexts/HistoryContext';
 
 const API_URL = "https://world.openfoodfacts.org/api/v2/product/"
 
@@ -14,6 +15,7 @@ const MOCKED_BARCODE =
 
 export default function TabTwoScreen() {
   const router = useRouter();
+  const { addToHistory } = useHistory();
 
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -99,15 +101,32 @@ export default function TabTwoScreen() {
 
           await saveItemToStorage({ ...product, score });
 
+          // Ajouter à l'historique
+          await addToHistory({
+            id: product.code || Date.now().toString(),
+            name: product.product_name || 'Produit inconnu',
+            barcode: scanningResult.data,
+            grade: product.nutriscore_grade?.toUpperCase(),
+          });
+
           if (product?.code) {
             router.push({
               pathname: "/modal",
               params: { code: product.code },
             });
           }
+        } else {
+          console.log("Produit non trouvé dans la base de données");
+          alert("Produit non trouvé dans la base de données");
         }
-      } catch (error) {
-        console.error("Erreur API :", error);
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          console.log("Produit non trouvé (404)");
+          alert("Produit non trouvé dans la base de données");
+        } else {
+          console.error("Erreur API :", error);
+          alert("Erreur lors de la récupération du produit");
+        }
       } finally {
         setScanned(false);
       }
