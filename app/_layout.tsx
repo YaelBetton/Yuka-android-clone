@@ -28,7 +28,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           {/* Modal qui s'ouvre par navigation */}
           <Stack.Screen
-            name="DetailsModal"
+            name="modal"
             options={{ presentation: "modal", title: "Mon nouveau titre" }}
           />
           {/* Page 404 */}

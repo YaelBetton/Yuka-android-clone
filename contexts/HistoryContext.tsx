@@ -6,6 +6,7 @@ export interface Product {
   name: string;
   barcode: string;
   grade?: string;
+  image?: string;
   scannedAt: string;
 }
 

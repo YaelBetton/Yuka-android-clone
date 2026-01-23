@@ -30,22 +30,22 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Accueil',
+          tabBarIcon: ({ color }) => <Ionicons name="time-outline" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
         name="scanner"
         options={{
           title: 'Scanner',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="scan-outline" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Historique',
-          tabBarIcon: ({ color }) => <Ionicons name="time-outline" size={28} color={color} />,
+          title: 'Paramètres',
+          tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={28} color={color} />,
         }}
       />
     </Tabs>

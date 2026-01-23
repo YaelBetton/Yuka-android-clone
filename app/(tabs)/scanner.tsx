@@ -107,6 +107,7 @@ export default function TabTwoScreen() {
             name: product.product_name || 'Produit inconnu',
             barcode: scanningResult.data,
             grade: product.nutriscore_grade?.toUpperCase(),
+            image: product.image_url || product.image_front_url || product.image_front_small_url,
           });
 
           if (product?.code) {
