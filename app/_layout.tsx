@@ -29,7 +29,7 @@ export default function RootLayout() {
           {/* Modal qui s'ouvre par navigation */}
           <Stack.Screen
             name="modal"
-            options={{ presentation: "modal", title: "Mon nouveau titre" }}
+            options={{ presentation: "modal", headerShown: false }}
           />
           {/* Page 404 */}
           <Stack.Screen name="+not-found" />

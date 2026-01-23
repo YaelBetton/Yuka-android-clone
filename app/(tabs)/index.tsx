@@ -39,6 +39,28 @@ export default function HomeScreen() {
     }
   };
 
+  // Fonction pour formater le temps relatif
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const scannedDate = new Date(dateString);
+    const diffInMs = now.getTime() - scannedDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) {
+      return "À l'instant";
+    } else if (diffInMinutes < 60) {
+      return `Il y a ${diffInMinutes} min`;
+    } else if (diffInHours < 24) {
+      return `Il y a ${diffInHours}h`;
+    } else if (diffInDays === 1) {
+      return "Hier";
+    } else {
+      return `Il y a ${diffInDays} jours`;
+    }
+  };
+
   // Grouper l'historique par jour
   const groupedHistory = useMemo(() => {
     const filtered = history.filter(item =>
@@ -143,7 +165,7 @@ export default function HomeScreen() {
               </View>
               <View style={styles.productInfo}>
                 <ThemedText style={styles.productName}>{item.name}</ThemedText>
-                <ThemedText style={styles.productBrand}>{item.barcode}</ThemedText>
+                <ThemedText style={styles.productBrand}>{getTimeAgo(item.scannedAt)}</ThemedText>
               </View>
               {item.grade && (
                 <View style={[styles.scoreCircle, { backgroundColor: getScoreColor(item.grade) }]}>
