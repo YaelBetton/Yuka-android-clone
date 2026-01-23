@@ -82,8 +82,18 @@ export default function HomeScreen() {
     }));
   }, [history, searchQuery]);
 
-  // Fonction pour obtenir la couleur selon le score
   const getScoreColor = (score: string | number) => {
+    if (typeof score === 'string' && /^[A-E]$/i.test(score)) {
+      const grade = score.toUpperCase();
+      switch (grade) {
+        case 'A': return '#038141';
+        case 'B': return '#85BB2F';
+        case 'C': return '#FECB02';
+        case 'D': return '#EE8100';
+        case 'E': return '#E63E11';
+        default: return '#999';
+      }
+    }
     const numScore = typeof score === 'string' ? parseInt(score) : score;
     if (numScore >= 80) return '#16a34a'; // vert
     if (numScore >= 50) return '#f97316'; // orange
@@ -106,7 +116,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <ThemedText style={styles.greeting}>Bonjour.</ThemedText>
+            <ThemedText style={styles.greeting}>Focus.</ThemedText>
             <ThemedText style={styles.subGreeting}>Prenez soin de vous.</ThemedText>
           </View>
           <TouchableOpacity 
@@ -151,7 +161,17 @@ export default function HomeScreen() {
             </View>
           )}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.productItem}>
+            <TouchableOpacity 
+              style={styles.productItem}
+              onPress={() => {
+                if (item.barcode) {
+                  router.push({
+                    pathname: "/modal",
+                    params: { code: item.barcode },
+                  });
+                }
+              }}
+            >
               <View style={styles.productImage}>
                 {item.image ? (
                   <Image 
