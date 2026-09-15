@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Installer Node 20'
+
+  - script: npm ci
+    displayName: 'Installer les dépendances'
+
+  - script: npm run lint
+    displayName: 'ESLint'
+    continueOnError: true
+
+  - script: npm run test:coverage
+    displayName: 'Tests + couverture'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'coverage'
+      artifact: 'coverage-report'
+    condition: succeededOrFailed()
+    displayName: 'Publier la couverture'
