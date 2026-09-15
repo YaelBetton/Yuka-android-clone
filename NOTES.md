@@ -109,6 +109,72 @@ Open Food Facts sans authentification. Aucun `.env` versionné.
   `.expo/types/router.d.ts` restent suivis (antérieurs à la règle).
   Non corrigé — hors périmètre de cette séance.
 
+### 1.8 Couverture de référence — `lib/score.ts`
+
+Relevé le 2026-09-15 sur `feat/quality-tooling`, après extraction de `getScore`
+vers `lib/` (`d9c665c`) et écriture de 6 tests Jest (`lib/score.test.ts`).
+Commande : `npm run test:coverage` (périmètre `collectCoverageFrom: lib/**/*.ts`).
+
+| Fichier | % Stmts | % Branch | % Funcs | % Lines |
+|---|---|---|---|---|
+| `score.ts` | 100 | 100 | 100 | 100 |
+
+6 tests / 6 passent : produit sain, gras-sucré-salé, moyen, clamp à 0,
+clamp à 100, nutriment manquant (`salt_100g` absent).
+
+**Valeur de référence : 100 % partout.** Pourtant aucun test ne couvre un
+produit **sans objet `nutriments`** (défaut n°7 → `TypeError`). Le trou est
+volontaire : Jest le déclare couvert, Stryker doit le révéler.
+
+### 1.9 Mutation score de référence — `lib/score.ts`
+
+Relevé le 2026-09-15, Stryker (`@stryker-mutator/core` + `jest-runner`),
+`coverageAnalysis: perTest`, `mutate: lib/score.ts`. Commande : `npm run test:mutation`.
+Durée : 13 s. Rapport : `reports/mutation/index.html`.
+
+| Métrique | Valeur |
+|---|---|
+| Couverture Jest (lignes / branches) | **100 % / 100 %** |
+| **Mutation score** | **80,00 %** |
+| Mutants générés | 20 |
+| Tués / survivants / no coverage / timeout | 16 / **4** / 0 / 0 |
+
+**Écart couverture → mutation : 20 points.** Un mutant sur cinq modifie le
+comportement de `getScore` sans qu'aucun test ne s'en aperçoive.
+
+#### Survivants
+
+| # | Ligne | Mutation | Pourquoi aucun test ne l'a vue |
+|---|---|---|---|
+| 1 | `score.ts:7` | `saturated-fat * 3` → `/ 3` | Produit gras : 3 g × 3 = 9 pts devient 1 pt → score 29 → **37**, toujours `< 40`. Les autres produits ont ≤ 1 g de graisses saturées, écart de ≤ 3 pts absorbé par les fourchettes. |
+| 2 | `score.ts:7` | `'saturated-fat_100g'` → `""` | La clé ne matche plus rien → `safe(undefined)` = 0, les graisses saturées disparaissent du score. Produit gras : 29 → **38**, toujours `< 40`. **Un nutriment entier peut être retiré du calcul sans casser un test.** |
+| 3 | `score.ts:13` | `fiber * 2` → `/ 2` | Fibres faibles dans les produits testés (0,5 à 2 g) : écart de 0,75 à 3 pts. Produit « extrême inverse » : 175 au lieu de 220, **le clamp à 100 masque la différence**. |
+| 4 | `score.ts:14` | `proteins * 1.5` → `/ 1.5` | Même mécanisme : moyen 67 → 62 (dans 40–80), manquant 82 → 78 (dans 70–100), extrême inverse toujours clampé à 100. |
+
+Constats :
+- Les 4 survivants sont des **pondérations** : les assertions en
+  `toBeGreaterThan` / `toBeLessThan` vérifient une tendance, pas une formule.
+- Les tests de clamp (`toBe(0)`, `toBe(100)`) utilisent des valeurs si extrêmes
+  qu'ils **saturent** : n'importe quel coefficient donne le même résultat.
+  Le test clamp-0 et le test « moyen » ne tuent **aucun** mutant en propre
+  (Stryker : `covered 19`, `killed 0`).
+- Le test « gras/sucré/salé » tue 10 mutants à lui seul, mais laisse passer
+  les survivants 1 et 2 à 2–3 points près de son seuil de 40.
+
+#### Le trou `product.nutriments` absent n'apparaît pas
+
+Attendu en « No coverage », **il n'y est pas : 0 mutant non couvert.**
+Stryker mute le code **existant** (opérateurs, littéraux, conditions) ; il ne
+peut pas inventer une garde qui n'a jamais été écrite. `getScore` ne contient
+ni `?.` ni `if (!product.nutriments)` : il n'y a rien à muter, donc rien à signaler.
+
+**Pour le rapport** : ni la couverture (100 %) ni le mutation score (80 %)
+ne détectent le crash sur un produit sans données nutritionnelles. Le mutation
+testing mesure la qualité des tests *vis-à-vis du code écrit*, pas l'absence
+de code (cas limites non gérés). Ce défaut relève plutôt de l'analyse statique
+(SonarQube, TypeScript strict sans `any`) ou de tests écrits à partir de la
+spécification plutôt que de l'implémentation.
+
 ---
 
 ## 2. Gabarit de séance
@@ -197,3 +263,8 @@ figer un état de référence « avant outillage ».
 - [ ] Configurer SonarQube (`sonar-project.properties`).
 - [ ] Comparer les trois métriques sur le même périmètre.
 - [ ] Écrire les « vrais » tests et mesurer le gain en mutation score.
+
+## Contrainte d'infrastructure
+- Pool d'agents Microsoft indisponible sur projet privé (compte étudiant)
+- Options : formulaire de demande (2-3j), agent self-hosted, ou projet public
+- Choix : bascule en public — aucun secret dans le code, débloque aussi SonarCloud free
